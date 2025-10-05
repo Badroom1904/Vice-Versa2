@@ -24,14 +24,14 @@ def test_pages_availability(client, name):
 def test_logout_page_availability(client):
     """Страница выхода из учётной записи требует POST-запрос."""
     url = reverse('users:logout')
-    
+
     # GET-запрос должен возвращать 405 (Method Not Allowed)
     response = client.get(url)
     assert response.status_code == HTTPStatus.METHOD_NOT_ALLOWED
-    
+
     # POST-запрос может возвращать либо 200, либо 302
     response = client.post(url)
-    # Допустимые статусы после выхода: 200 (остается на странице) или 302 (редирект)
+
     assert response.status_code in (HTTPStatus.OK, HTTPStatus.FOUND)
 
 
