@@ -49,22 +49,29 @@ class TestRoutes(TestCase):
         self.assertRedirects(response, expected_url)
         self.assertEqual(Note.objects.count(), 0)
 
-    def test_not_unique_slug(self):
-        """Невозможно создать две заметки с одинаковым slug."""
-        self.note = Note.objects.create(
-            title='Заголовок',
-            text='Текст',
-            author=self.author,
-        )
-        url = reverse('notes:add')
-        response = self.author_client.post(url, data={
-            'title': 'Новый заголовок',
-            'text': 'Новый текст',
-            'slug': self.note.slug
-        })
-        self.assertFormError(response, 'form', 'slug',
-                             errors=(self.note.slug + WARNING))
-        self.assertEqual(Note.objects.count(), 1)
+
+def test_not_unique_slug(self):
+    """Невозможно создать две заметки с одинаковым slug."""
+    url = reverse('notes:add')
+    response = self.author_client.post(url, data={
+        'title': 'Новый заголовок',
+        'text': 'Новый текст',
+        'slug': self.existing_note.slug  # Используем slug существующей заметки
+    })
+
+    self.assertEqual(response.status_code, HTTPStatus.OK)
+
+    self.assertIn('form', response.context)
+
+    form = response.context['form']
+    self.assertTrue(form.errors)
+
+    self.assertIn('slug', form.errors)
+
+    expected_error = self.existing_note.slug + WARNING
+    self.assertIn(expected_error, form.errors['slug'])
+
+    self.assertEqual(Note.objects.count(), 1)
 
     def test_empty_slug(self):
         """Если при создании заметки не заполнен slug, то он формируется
