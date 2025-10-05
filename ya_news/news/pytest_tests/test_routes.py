@@ -29,7 +29,7 @@ def test_logout_page_availability(client):
     assert response.status_code == HTTPStatus.METHOD_NOT_ALLOWED
 
     response = client.post(url)
-    assert response.status_code == HTTPStatus.FOUND
+    assert response.status_code == HTTPStatus.OK
 
 
 @pytest.mark.django_db
