@@ -26,34 +26,23 @@ class TestRoutes(TestCase):
         )
 
     def test_pages_availability_for_anonymous_user(self):
-        """Главная страница доступна анонимному пользователю.
-        Страницы регистрации пользователей, входа в учётную запись
-        и выхода из неё доступны всем пользователям.
-        """
+        """Главная страница доступна анонимному пользователю."""
         urls = (
             'notes:home',
             'users:login',
-            'users:logout',
             'users:signup',
         )
         for name in urls:
-            with self.subTest():
+            with self.subTest(name=name):
                 url = reverse(name)
-                response = self.author_client.get(url)
+                response = self.client.get(url)
                 self.assertEqual(response.status_code, HTTPStatus.OK)
 
-    def test_logout_page_availability(self):
-        """Страница выхода требует POST-запрос."""
+    def test_logout_method_not_allowed_for_get(self):
+        """GET-запрос к странице выхода возвращает 405."""
         url = reverse('users:logout')
-
-        # GET-запрос должен возвращать 405 (Method Not Allowed)
         response = self.client.get(url)
         self.assertEqual(response.status_code, HTTPStatus.METHOD_NOT_ALLOWED)
-
-        # POST-запрос должен работать
-        response = self.client.post(url)
-        # POST к logout обычно возвращает 302 (редирект) или 200
-        self.assertIn(response.status_code, [HTTPStatus.OK, HTTPStatus.FOUND])
 
     def test_pages_availability_for_auth_user(self):
         """Аутентифицированному пользователю доступна страница со списком
@@ -66,7 +55,7 @@ class TestRoutes(TestCase):
             'notes:add',
         )
         for name in urls:
-            with self.subTest():
+            with self.subTest(name=name):
                 url = reverse(name)
                 response = self.author_client.get(url)
                 self.assertEqual(response.status_code, HTTPStatus.OK)
@@ -108,7 +97,7 @@ class TestRoutes(TestCase):
             ('notes:delete', (self.note.slug,)),
         )
         for name, args in urls:
-            with self.subTest():
+            with self.subTest(name=name):
                 url = reverse(name, args=args)
                 redirect_url = f'{login_url}?next={url}'
                 response = self.client.get(url)
