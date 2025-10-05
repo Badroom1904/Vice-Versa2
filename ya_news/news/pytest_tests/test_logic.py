@@ -4,7 +4,7 @@ from django.urls import reverse
 
 import pytest
 
-from pytest_django.asserts import assertRedirects
+from pytest_django.asserts import assertRedirects, assertFormError
 
 from conftest import TEXT_COMMENT
 from news.forms import BAD_WORDS, WARNING
@@ -38,18 +38,12 @@ def test_user_cant_use_bad_words(author_client, news):
     bad_words_data = {'text': f'Какой-то текст, {BAD_WORDS[0]}, еще текст'}
     url = reverse('news:detail', args=(news.id,))
     response = author_client.post(url, data=bad_words_data)
-
-    # Альтернативный способ проверки без assertFormError:
-    assert response.status_code == HTTPStatus.OK  # или другой ожидаемый статус
-    # Проверяем, что комментарий не создался
-    comments_count = Comment.objects.count()
-    assert comments_count == 0
-    # Дополнительно можно проверить наличие ошибки в контексте
-    assert 'form' in response.context
-    form = response.context['form']
-    assert form.errors
-    assert 'text' in form.errors
-    assert WARNING in str(form.errors['text'])
+    assertFormError(
+        response,
+        form='form',
+        field='text',
+        errors=WARNING
+    )
     comments_count = Comment.objects.count()
     assert comments_count == 0
 

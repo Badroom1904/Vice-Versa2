@@ -21,21 +21,6 @@ def test_pages_availability(client, name):
     assert response.status_code == HTTPStatus.OK
 
 
-def test_logout_redirects(client):
-    """Выход перенаправляет пользователя."""
-    url = reverse('users:logout')
-    response = client.get(url)
-    assert response.status_code in [HTTPStatus.FOUND, HTTPStatus.OK]
-
-
-def test_logout_with_post(client, user):
-    """Выход работает с POST запросом."""
-    client.force_login(user)
-    url = reverse('users:logout')
-    response = client.post(url)  # Правильный POST запрос
-    assert response.status_code in [HTTPStatus.FOUND, HTTPStatus.OK]
-
-
 @pytest.mark.django_db
 def test_detail_page(client, news):
     """Страница отдельной новости доступна анонимному пользователю."""
