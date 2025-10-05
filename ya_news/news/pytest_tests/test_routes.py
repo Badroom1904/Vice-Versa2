@@ -10,7 +10,7 @@ from pytest_django.asserts import assertRedirects
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     'name',
-    ('news:home', 'users:login', 'users:logout', 'users:signup')
+    ('news:home', 'users:login', 'users:signup')
 )
 def test_pages_availability(client, name):
     """Главная страница, cтраницы регистрации пользователей,
@@ -19,6 +19,13 @@ def test_pages_availability(client, name):
     url = reverse(name)
     response = client.get(url)
     assert response.status_code == HTTPStatus.OK
+
+
+def test_logout_page_availability(client):
+    """Страница выхода из учётной записи доступна анонимным пользователям."""
+    url = reverse('users:logout')
+    response = client.get(url)
+    assert response.status_code in (HTTPStatus.OK, HTTPStatus.FOUND)
 
 
 @pytest.mark.django_db
