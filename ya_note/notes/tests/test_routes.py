@@ -42,6 +42,19 @@ class TestRoutes(TestCase):
                 response = self.author_client.get(url)
                 self.assertEqual(response.status_code, HTTPStatus.OK)
 
+    def test_logout_page_availability(self):
+        """Страница выхода требует POST-запрос."""
+        url = reverse('users:logout')
+
+        # GET-запрос должен возвращать 405 (Method Not Allowed)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, HTTPStatus.METHOD_NOT_ALLOWED)
+
+        # POST-запрос должен работать
+        response = self.client.post(url)
+        # POST к logout обычно возвращает 302 (редирект) или 200
+        self.assertIn(response.status_code, [HTTPStatus.OK, HTTPStatus.FOUND])
+
     def test_pages_availability_for_auth_user(self):
         """Аутентифицированному пользователю доступна страница со списком
         заметок notes/, страница успешного добавления заметки done/,
