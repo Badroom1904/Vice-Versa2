@@ -4,7 +4,7 @@ from django.urls import reverse
 
 import pytest
 
-from pytest_django.asserts import assertRedirects, assertFormError
+from pytest_django.asserts import assertRedirects
 
 from conftest import TEXT_COMMENT
 from news.forms import BAD_WORDS, WARNING
