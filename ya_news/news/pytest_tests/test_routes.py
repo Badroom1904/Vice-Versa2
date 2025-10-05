@@ -21,7 +21,6 @@ def test_pages_availability(client, name):
     assert response.status_code == HTTPStatus.OK
 
 
-@pytest.mark.django_db
 def test_logout_page_availability(client):
     """Страница выхода из учётной записи требует POST-запрос."""
     url = reverse('users:logout')
@@ -30,7 +29,7 @@ def test_logout_page_availability(client):
     assert response.status_code == HTTPStatus.METHOD_NOT_ALLOWED
 
     response = client.post(url)
-    assert response.status_code != HTTPStatus.INTERNAL_SERVER_ERROR
+    assert response.status_code == HTTPStatus.FOUND
 
 
 @pytest.mark.django_db
