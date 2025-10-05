@@ -62,8 +62,12 @@ class TestRoutes(TestCase):
             'text': 'Новый текст',
             'slug': self.note.slug
         })
-        self.assertFormError(response, 'form', 'slug',
-                             errors=(self.note.slug + WARNING))
+        self.assertFormError(
+            response,
+            'form',
+            'slug',
+            errors=[self.note.slug + WARNING]
+        )
         self.assertEqual(Note.objects.count(), 1)
 
     def test_empty_slug(self):
