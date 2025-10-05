@@ -38,9 +38,16 @@ def test_user_cant_use_bad_words(author_client, news):
     bad_words_data = {'text': f'Какой-то текст, {BAD_WORDS[0]}, еще текст'}
     url = reverse('news:detail', args=(news.id,))
     response = author_client.post(url, data=bad_words_data)
-    assertFormError(response, 'form', 'text', WARNING)
-    comments_count = Comment.objects.count()
-    assert comments_count == 0
+
+    # Проверяем, что комментарий не был создан
+    assert Comment.objects.count() == 0
+
+    # Проверяем, что форма содержит ошибку
+    assert 'form' in response.context
+    form = response.context['form']
+    assert form.errors
+    assert 'text' in form.errors
+    assert WARNING in form.errors['text']
 
 
 def test_author_can_delete_comment(author_client, news, comment):
