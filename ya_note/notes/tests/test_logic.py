@@ -49,22 +49,35 @@ class TestRoutes(TestCase):
         self.assertRedirects(response, expected_url)
         self.assertEqual(Note.objects.count(), 0)
 
-    def test_not_unique_slug(self):
-        """Невозможно создать две заметки с одинаковым slug."""
-        self.note = Note.objects.create(
-            title='Заголовок',
-            text='Текст',
-            author=self.author,
-        )
-        url = reverse('notes:add')
-        response = self.author_client.post(url, data={
-            'title': 'Новый заголовок',
-            'text': 'Новый текст',
-            'slug': self.note.slug
-        })
-        self.assertFormError(response, 'form', 'slug',
-                             errors=(self.note.slug + WARNING))
-        self.assertEqual(Note.objects.count(), 1)
+def test_not_unique_slug(self):
+    """Невозможно создать две заметки с одинаковым slug."""
+    url = reverse('notes:add')
+    response = self.author_client.post(url, data={
+        'title': 'Новый заголовок',
+        'text': 'Новый текст',
+        'slug': self.existing_note.slug  # Используем slug существующей заметки
+    })
+
+    # Разделяем проверки вместо assertFormError
+    # 1. Проверяем, что форма вернулась с ошибками (статус 200)
+    self.assertEqual(response.status_code, HTTPStatus.OK)
+
+    # 2. Проверяем, что форма есть в контексте
+    self.assertIn('form', response.context)
+
+    # 3. Проверяем, что у формы есть ошибки
+    form = response.context['form']
+    self.assertTrue(form.errors)
+
+    # 4. Проверяем, что ошибка относится к полю slug
+    self.assertIn('slug', form.errors)
+
+    # 5. Проверяем конкретное сообщение об ошибке
+    expected_error = self.existing_note.slug + WARNING
+    self.assertIn(expected_error, form.errors['slug'])
+
+    # 6. Проверяем, что новая заметка не создалась
+    self.assertEqual(Note.objects.count(), 1)
 
     def test_empty_slug(self):
         """Если при создании заметки не заполнен slug, то он формируется
