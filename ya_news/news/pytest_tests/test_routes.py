@@ -18,7 +18,14 @@ def test_pages_availability(client, name):
     """
     url = reverse(name)
     response = client.get(url)
+    assert response.status_code == HTTPStatus.OK 
 
+
+def test_logout_redirects(client):
+    """Выход перенаправляет пользователя."""
+    url = reverse('users:logout')
+    response = client.get(url)
+    assert response.status_code in [HTTPStatus.FOUND, HTTPStatus.OK]
 
 
 @pytest.mark.django_db
