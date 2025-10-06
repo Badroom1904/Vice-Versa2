@@ -8,12 +8,7 @@ import pytest
 from news.models import News, Comment
 
 TEXT_COMMENT = 'Текст комментария'
-
-
-@pytest.fixture
-def new_text_comment():
-    """Новый текст для комментария."""
-    return {'text': 'Новый текст'}
+NEW_TEXT_COMMENT = 'Новый текст комментария'
 
 
 @pytest.fixture
@@ -44,7 +39,7 @@ def news():
 def comment(news, author):
     """Создаём коммент."""
     comment = Comment.objects.create(
-        text=TEXT_COMMENT,
+        text='Текст комментария',
         news=news,
         author=author
     )
@@ -55,10 +50,10 @@ def comment(news, author):
 def list_news():
     """Создаём список новостей."""
     today, list_news = datetime.today(), []
-    for index in range(settings.NEWS_COUNT_ON_HOME_PAGE):
+    for index in range(settings.NEWS_COUNT_ON_HOME_PAGE + 1):
         news = News.objects.create(
-            title='Новость {index}',
-            text='Текст новости',
+            title=f'Новость {index}',
+            text=f'Текст новости {index}',
         )
         news.date = today - timedelta(days=index)
         news.save()
@@ -70,12 +65,13 @@ def list_news():
 def list_comments(news, author):
     """Создаём список комментариев."""
     now, list_comment = timezone.now(), []
-    for index in range(2):
+    for index in range(5):
         comment = Comment.objects.create(
-            text='Текст {index}',
+            text=f'Текст комментария {index}',
             news=news,
             author=author,
         )
         comment.created = now + timedelta(days=index)
         comment.save()
         list_comment.append(comment)
+    return list_comment

@@ -7,7 +7,8 @@ from notes.models import Note
 User = get_user_model()
 
 
-class TestRoutes(TestCase):
+class TestDataMixin:
+    """Базовый класс с тестовыми данными для всех тестов."""
 
     @classmethod
     def setUpTestData(cls):
@@ -23,6 +24,10 @@ class TestRoutes(TestCase):
             author=cls.author,
         )
 
+
+class TestRoutes(TestDataMixin, TestCase):
+    """Тесты маршрутов."""
+
     def test_notes_list_for_different_users(self):
         """Отдельная заметка передаётся на страницу со списком заметок
         в списке object_list в словаре context.
@@ -34,7 +39,7 @@ class TestRoutes(TestCase):
             (self.auth_user_client, False),
         )
         for user, note_in_list in users_statuses:
-            with self.subTest():
+            with self.subTest(user=user.username):
                 url = reverse('notes:list')
                 response = user.get(url)
                 object_list = response.context['object_list']
@@ -47,7 +52,7 @@ class TestRoutes(TestCase):
             ('notes:edit', (self.note.slug,)),
         )
         for name, args in urls:
-            with self.subTest():
+            with self.subTest(name=name):
                 url = reverse(name, args=args)
                 response = self.author_client.get(url)
                 self.assertIn('form', response.context)

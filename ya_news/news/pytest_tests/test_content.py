@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.urls import reverse
+from datetime import datetime, timedelta
 
 import pytest
 
@@ -10,7 +11,7 @@ def test_news_count(client, list_news):
     url = reverse('news:home')
     response = client.get(url)
     object_list = response.context['object_list']
-    news_count = len(object_list)
+    news_count = object_list.count()
     assert news_count == settings.NEWS_COUNT_ON_HOME_PAGE
 
 
@@ -22,9 +23,9 @@ def test_news_order(client, list_news):
     url = reverse('news:home')
     response = client.get(url)
     object_list = response.context['object_list']
-    all_news = [news for news in object_list]
-    sorted_news = sorted(all_news, key=lambda x: x.date, reverse=True)
-    assert sorted_news == list_news
+    all_dates = [news.date for news in object_list]
+    sorted_dates = sorted(all_dates, reverse=True)
+    assert all_dates == sorted_dates
 
 
 @pytest.mark.django_db
@@ -37,23 +38,29 @@ def test_comments_order(client, news, list_comments):
     assert 'news' in response.context
     news = response.context['news']
     all_comments = news.comment_set.all()
-    assert all_comments[0].created < all_comments[1].created
+
+    comments_count = all_comments.count()
+    for i in range(comments_count - 1):
+        assert all_comments[i].created < all_comments[i + 1].created
 
 
-@pytest.mark.parametrize(
-    'parametrized_client, status',
-    (
-        (pytest.lazy_fixture('client'), False),
-        (pytest.lazy_fixture('author_client'), True)
-    ),
-)
 @pytest.mark.django_db
-def test_anonymous_client_has_no_form(parametrized_client, status, comment):
+def test_anonymous_client_has_no_form(client, news):
     """Анонимному пользователю недоступна форма для отправки
     комментария на странице отдельной новости.
-    Авторизованному пользователю доступна форма для отправки
+    """
+    url = reverse('news:detail', args=(news.id,))
+    response = client.get(url)
+    assert 'form' not in response.context
+
+
+@pytest.mark.django_db
+def test_authorized_client_has_form(author_client, news):
+    """Авторизованному пользователю доступна форма для отправки
     комментария на странице отдельной новости.
     """
-    url = reverse('news:detail', args=(comment.id,))
-    response = parametrized_client.get(url)
-    assert ('form' in response.context) is status
+    url = reverse('news:detail', args=(news.id,))
+    response = author_client.get(url)
+    assert 'form' in response.context
+    form = response.context['form']
+    assert form.__class__.__name__ == 'CommentForm'
